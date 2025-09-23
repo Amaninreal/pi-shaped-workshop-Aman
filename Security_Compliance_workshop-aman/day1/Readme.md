@@ -75,8 +75,6 @@ I ran into several real-world issues during this exercise, which were great lear
 Of course. Here is the full "Core Concepts" section, rewritten in a more personal, "in my own words" style. Each answer explains the concept and is followed by a clear, real-world use case, just as you requested.
 
 ---
-
-```markdown
 ## 6. My Understanding of the Core Concepts
 
 ### Explain the concept of shift-left security and why it is important in DevSecOps.
@@ -116,4 +114,3 @@ A scanner can definitely be tricked. Most scanners look for specific patterns or
 *   **How to Prevent It (You need multiple layers)**:
     1.  **Smarter Tools**: Use more advanced SAST (Static Application Security Testing) tools that analyze the code's logic and data flow. A SAST tool could see that two strings are being combined and then used in a sensitive way (like an API header) and flag it.
     2.  **Human Review**: This is the most important defense. A mandatory code review process by another teammate would immediately catch this. A person would see this strange code and ask, "Why are you building a key from strings? This needs to come from our secrets vault." A human can spot suspicious intent that a tool might miss.
-```
