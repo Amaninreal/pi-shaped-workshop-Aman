@@ -9,23 +9,24 @@ jobs:
   zap_scan:
     runs-on: ubuntu-latest
     name: Scan Public OWASP Juice Shop
+  
+    permissions:
+      contents: read # Allow checkout
+      issues: write  # Allow ZAP action to create issues
 
     steps:
-      # Step 1: Check out the repository to make the workspace available for report generation
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Run the official OWASP ZAP Baseline Scan Action
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
         with:
-          # The target URL to scan. We use the public demo instance for simplicity and reliability.
           target: 'https://juice-shop.herokuapp.com/'
-          # We set this to false so the pipeline doesn't fail if ZAP finds vulnerabilities.
+          # FIX #2: Explicitly disable issue creation
+          issue_title: 'ZAP Scan Report'
+          create_issue: false
           fail_action: false
 
-      # Step 3: Upload the ZAP report as a build artifact
-      # The official action automatically creates a 'zap-report.html' file.
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
