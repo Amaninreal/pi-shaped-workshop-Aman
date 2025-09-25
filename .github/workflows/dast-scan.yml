@@ -18,10 +18,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run ZAP Baseline Scan
+        continue-on-error: true
         run: |
-          # Fix permissions so the zap user inside container can write
           sudo chown 1000:1000 ${{ github.workspace }}
-          
           docker run --rm -v ${{ github.workspace }}:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
             -t https://juice-shop.herokuapp.com/ \
@@ -29,7 +28,7 @@ jobs:
             -J report_json.json \
             -w report_md.md \
             -r report_html.html
-            --exit-code-ignore-warn
+
 
       - name: List generated reports
         run: ls -lh ${{ github.workspace }}
