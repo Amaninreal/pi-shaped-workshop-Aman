@@ -1,3 +1,5 @@
+# .github/workflows/dast-scan.yml
+
 name: OWASP ZAP DAST Scan
 
 on:
@@ -11,21 +13,20 @@ jobs:
     name: Scan Public OWASP Juice Shop
 
     steps:
+      # Step 1: Check out the code
       - name: Checkout
         uses: actions/checkout@v4
 
-      # THIS IS THE FIX: Add a step to grant write permissions to the workspace
-      - name: Grant Write Permissions
-        run: chmod -R 777 .
-
-      # Step 2: Run the ZAP scan. It will now be able to write its temp files.
+      # Step 2: Run the ZAP scan ONLY.
+      # It will create the report file but will NOT try to upload anything.
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
         with:
           target: 'https://juice-shop.herokuapp.com/'
           allow_issue_writing: false
 
-      # Step 3: Upload the report, which will now be generated successfully.
+      # Step 3: Use the OFFICIAL, reliable GitHub action to upload the report.
+      # This step will find the report file and save it correctly.
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
