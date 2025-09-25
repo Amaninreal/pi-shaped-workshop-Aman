@@ -1,13 +1,13 @@
 name: ZAP Baseline Scan
 
 on:
-  workflow_dispatch:      # manual trigger
+  workflow_dispatch:    
   push:
     branches:
-      - main              # run on push to main
+      - main              
   pull_request:
     branches:
-      - main              # run on PRs targeting main
+      - main            
 
 jobs:
   zap_scan:
