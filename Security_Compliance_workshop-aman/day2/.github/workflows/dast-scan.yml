@@ -15,22 +15,38 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Use a different ZAP action approach
-      - name: ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.10.0
+      # Step 2: Set environment variable to disable artifact upload
+      - name: Disable ZAP artifact upload
+        run: |
+          echo "ZAP_ARTIFACT_UPLOAD=false" >> $GITHUB_ENV
+
+      # Step 3: Run ZAP with detailed debugging
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.11.0
+        env:
+          ACTIONS_STEP_DEBUG: true
+          ZAP_ARTIFACT_UPLOAD: "false"
         with:
           target: 'https://juice-shop.herokuapp.com/'
-          rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-a'
+          allow_issue_writing: false
+          upload_artifacts: false
+          artifact_name: "zap-scan-results"  # Try a different name
 
-      # Step 3: Upload any generated reports
+      # Step 4: List files to see what was generated
+      - name: List generated files
+        run: ls -la
+
+      # Step 5: Upload reports manually
       - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         with:
           name: zap-security-reports
           path: |
+            report_html.html
+            report_json.json
+            report_md.md
             *.html
             *.json
             *.md
           retention-days: 30
-        if: always()  # Upload even if scan fails
+        if: always()
