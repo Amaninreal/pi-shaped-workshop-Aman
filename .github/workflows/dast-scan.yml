@@ -1,37 +1,34 @@
-name: OWASP ZAP DAST Scan
+name: ZAP Baseline Scan
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   zap_scan:
     runs-on: ubuntu-latest
-    name: Scan Public OWASP Juice Shop
 
     steps:
-      # Step 1: Check out the code
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Step 2: Grant write permissions to the workspace to prevent the "Permission denied" error
-      - name: Grant Write Permissions
-        run: chmod -R 777 .
+      - name: Run ZAP Baseline Scan
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/zap/wrk \
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t https://juice-shop.herokuapp.com/ \
+            -g gen.conf \
+            -J report_json.json \
+            -w report_md.md \
+            -r report_html.html
 
-      # Step 3: Run the ZAP scan ONLY. It will now be able to write its temp files.
-      - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.11.0
-        with:
-          target: 'https://juice-shop.herokuapp.com/'
-          allow_issue_writing: false
+      - name: List generated reports
+        run: ls -lh ${{ github.workspace }}
 
-      # Step 4: Use the OFFICIAL GitHub action to upload the report.
       - name: Upload ZAP Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3   # 👈 fallback to v3 for stability
         with:
-          name: zap-scan-reports   # ✅ valid
+          name: zapscan
           path: |
-            report_json.json
-            report_md.md
-            report_html.html
+            ${{ github.workspace }}/report_json.json
+            ${{ github.workspace }}/report_md.md
+            ${{ github.workspace }}/report_html.html
