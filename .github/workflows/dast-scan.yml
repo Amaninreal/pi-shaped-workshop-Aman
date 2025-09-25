@@ -15,20 +15,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Grant write permissions to the workspace to prevent the "Permission denied" error
-      - name: Grant Write Permissions
-        run: chmod -R 777 .
+      # Step 2: Run ZAP directly using Docker (bypassing the problematic action)
+      - name: Run ZAP Baseline Scan
+        run: |
+          docker run --rm \
+            -v $(pwd):/zap/wrk/:rw \
+            -t ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t https://juice-shop.herokuapp.com/ \
+            -J zap-report.json \
+            -w zap-report.md \
+            -r zap-report.html
 
-      # Step 3: Run the ZAP scan ONLY. It will now be able to write its temp files.
-      - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.11.0
-        with:
-          target: 'https://juice-shop.herokuapp.com/'
-          allow_issue_writing: false
-
-      # Step 4: Use the OFFICIAL GitHub action to upload the report.
-      - name: Upload ZAP Report
+      # Step 3: Upload ZAP reports
+      - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         with:
-          name: zap-reports
-          path: 'report_html.html'
+          name: zap-security-reports
+          path: |
+            zap-report.html
+            zap-report.json
+            zap-report.md
+          retention-days: 30
