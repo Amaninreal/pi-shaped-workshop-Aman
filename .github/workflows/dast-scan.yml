@@ -9,26 +9,20 @@ jobs:
   zap_scan:
     runs-on: ubuntu-latest
     name: Scan Public OWASP Juice Shop
-  
-    permissions:
-      contents: read # Allow checkout
-      issues: write  # Allow ZAP action to create issues
 
     steps:
+      # This step is still needed so ZAP has a directory to write to
       - name: Checkout
         uses: actions/checkout@v4
 
+      # This single step now handles the scan AND the artifact upload
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
         with:
           target: 'https://juice-shop.herokuapp.com/'
-          # FIX #2: Explicitly disable issue creation
-          issue_title: 'ZAP Scan Report'
-          create_issue: false
-          fail_action: false
-
-      - name: Upload ZAP Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-reports
-          path: zap-report.html
+          
+          # This is the correct way to disable creating GitHub Issues
+          allow_issue_writing: false
+          
+          # Tell the ZAP action to create an artifact for us
+          artifact_name: zap-reports
