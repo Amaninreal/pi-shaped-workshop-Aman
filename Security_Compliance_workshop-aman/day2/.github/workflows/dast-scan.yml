@@ -15,21 +15,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Run the ZAP scan with artifact upload disabled
-      - name: ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.11.0
+      # Step 2: Use a different ZAP action approach
+      - name: ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.10.0
         with:
           target: 'https://juice-shop.herokuapp.com/'
-          allow_issue_writing: false
-          upload_artifacts: false  # Add this line to disable automatic upload
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
 
-      # Step 3: Upload all ZAP report files
+      # Step 3: Upload any generated reports
       - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         with:
           name: zap-security-reports
           path: |
-            report_html.html
-            report_json.json
-            report_md.md
+            *.html
+            *.json
+            *.md
           retention-days: 30
+        if: always()  # Upload even if scan fails
