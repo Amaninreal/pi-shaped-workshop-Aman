@@ -1,5 +1,3 @@
-# .github/workflows/dast-scan.yml
-
 name: OWASP ZAP DAST Scan
 
 on:
