@@ -15,25 +15,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Run ZAP directly using Docker (bypassing the problematic action)
-      - name: Run ZAP Baseline Scan
-        run: |
-          docker run --rm \
-            -v $(pwd):/zap/wrk/:rw \
-            -t ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py \
-            -t https://juice-shop.herokuapp.com/ \
-            -J zap-report.json \
-            -w zap-report.md \
-            -r zap-report.html
+      # Step 2: Use a different ZAP action approach
+      - name: ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          target: 'https://juice-shop.herokuapp.com/'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
 
-      # Step 3: Upload ZAP reports
+      # Step 3: Upload any generated reports
       - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         with:
           name: zap-security-reports
           path: |
-            zap-report.html
-            zap-report.json
-            zap-report.md
+            *.html
+            *.json
+            *.md
           retention-days: 30
+        if: always()  # Upload even if scan fails
