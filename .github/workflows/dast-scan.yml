@@ -16,11 +16,9 @@ jobs:
     name: Scan OWASP Juice Shop
 
     # Service containers to run alongside the runner
-    # This starts Juice Shop in a container
     services:
       juice-shop:
         image: bkimminich/juice-shop
-        # Map port 3000 of the service container to a random port on the runner
         ports:
           - 3000:3000
 
@@ -33,9 +31,7 @@ jobs:
       - name: ZAP Scan
         uses: docker://owasp/zap2docker-stable
         with:
-          # The entrypoint needs to be sh
           entrypoint: /bin/sh
-          # Command to run inside the ZAP container
           args: >
             -c "/zap/zap-baseline.py
             -t http://juice-shop:3000
@@ -48,7 +44,7 @@ jobs:
 
       # Step 3: Upload the ZAP report as a build artifact
       - name: Upload ZAP Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4 # <-- THIS IS THE FIX
         with:
           name: zap-reports
           path: |
