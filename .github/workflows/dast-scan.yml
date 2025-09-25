@@ -1,54 +1,33 @@
-# .github/workflows/dast-scan.yml
-
 name: OWASP ZAP DAST Scan
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push events but only for the main branch
   push:
     branches: [ "main" ]
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   zap_scan:
     runs-on: ubuntu-latest
-    name: Scan OWASP Juice Shop
-
-    # Service containers to run alongside the runner
-    services:
-      juice-shop:
-        image: bkimminich/juice-shop
-        ports:
-          - 3000:3000
+    name: Scan Public OWASP Juice Shop
 
     steps:
-      # Step 1: Check out the repository so the runner can access it
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # Step 1: Check out the repository to make the workspace available for report generation
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # Step 2: Run the ZAP Baseline scan
-      - name: ZAP Scan
-        # THIS IS THE FIX: Use the new official ZAP bare image
-        uses: docker://owasp/zap-bare
+      # Step 2: Run the official OWASP ZAP Baseline Scan Action
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.11.0
         with:
-          entrypoint: /bin/sh
-          args: >
-            -c "/zap/zap-baseline.py
-            -t http://juice-shop:3000
-            -g gen.conf
-            -J zap-report.json
-            -r zap-report.html
-            -w md-report.md
-            --hook=/zap/auth_hook.py
-            || true"
+          # The target URL to scan. We use the public demo instance for simplicity and reliability.
+          target: 'https://juice-shop.herokuapp.com/'
+          # We set this to false so the pipeline doesn't fail if ZAP finds vulnerabilities.
+          fail_action: false
 
       # Step 3: Upload the ZAP report as a build artifact
+      # The official action automatically creates a 'zap-report.html' file.
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
           name: zap-reports
-          path: |
-            zap-report.html
-            zap-report.json
-            md-report.md
+          path: zap-report.html
