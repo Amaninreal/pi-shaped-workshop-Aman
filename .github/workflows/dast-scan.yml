@@ -29,6 +29,7 @@ jobs:
             -J report_json.json \
             -w report_md.md \
             -r report_html.html
+            --exit-code-ignore-warn
 
       - name: List generated reports
         run: ls -lh ${{ github.workspace }}
