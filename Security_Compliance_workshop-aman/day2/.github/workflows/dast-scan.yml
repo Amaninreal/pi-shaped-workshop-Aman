@@ -1,0 +1,35 @@
+name: OWASP ZAP DAST Scan
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    name: Scan Public OWASP Juice Shop
+
+    steps:
+      # Step 1: Check out the code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Step 2: Run the ZAP scan with artifact upload disabled
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.11.0
+        with:
+          target: 'https://juice-shop.herokuapp.com/'
+          allow_issue_writing: false
+          upload_artifacts: false  # Add this line to disable automatic upload
+
+      # Step 3: Upload all ZAP report files
+      - name: Upload ZAP Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-security-reports
+          path: |
+            report_html.html
+            report_json.json
+            report_md.md
+          retention-days: 30
