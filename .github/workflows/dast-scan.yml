@@ -11,18 +11,23 @@ jobs:
     name: Scan Public OWASP Juice Shop
 
     steps:
-      # This step is still needed so ZAP has a directory to write to
       - name: Checkout
         uses: actions/checkout@v4
 
-      # This single step now handles the scan AND the artifact upload
+      # Step 1: Run the ZAP scan. This will create report files in the workspace.
       - name: ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.11.0
         with:
           target: 'https://juice-shop.herokuapp.com/'
-          
-          # This is the correct way to disable creating GitHub Issues
+          # Prevent the ZAP action from trying to create issues or artifacts
           allow_issue_writing: false
-          
-          # Tell the ZAP action to create an artifact for us
-          artifact_name: zap-reports
+
+      # Step 2: Use the official GitHub action to upload the report.
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-reports
+          # The ZAP action creates these files by default
+          path: |
+            report_html.html
+            report_md.md
