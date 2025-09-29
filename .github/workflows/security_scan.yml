@@ -11,7 +11,6 @@ on:
       - master
 
 jobs:
-  # Job for Static Application Security Testing (SAST)
   sast_scans:
     runs-on: ubuntu-latest
     steps:
@@ -27,61 +26,67 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+        working-directory: day3 # <--- ADD THIS
 
       - name: Run Bandit (Python SAST)
         id: bandit
         run: |
           pip install bandit
-          bandit -r . -f html -o bandit-report.html || true # Continue on error
+          bandit -r . -f html -o bandit-report.html || true
+        working-directory: day3 # <--- ADD THIS
         shell: bash
-        continue-on-error: true # Allow job to continue even if Bandit finds issues
+        continue-on-error: true
 
       - name: Upload Bandit Report
         uses: actions/upload-artifact@v4
         with:
           name: bandit-report
-          path: bandit-report.html
+          path: day3/bandit-report.html # <--- UPDATE PATH
 
       - name: Run Semgrep (General SAST)
         id: semgrep
         uses: returntocorp/semgrep-action@v1
         with:
           config: p/python p/flask p/secrets p/ci
-        continue-on-error: true # Allow job to continue even if Semgrep finds issues
+          workingDirectory: day3 # <--- Check Semgrep action docs for specific parameter if 'working-directory' doesn't work. It's often 'working-directory' or 'src'
+        continue-on-error: true
 
       - name: Upload Semgrep SARIF Report
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-sarif-report
-          path: semgrep.sarif
+          path: day3/semgrep.sarif # <--- UPDATE PATH
 
-  # Job for Secrets Scanning
   secrets_scan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Gitleaks needs full history to scan
+          fetch-depth: 0
 
       - name: Run Gitleaks Scan
         uses: zricethezav/gitleaks-action@v1.4.0
         with:
-          config: .github/gitleaks.toml # Optional: custom config
+          config: .github/gitleaks.toml
           report_format: json
           report_path: gitleaks-report.json
-        continue-on-error: true # Allow job to continue even if Gitleaks finds issues
+          # You might need to specify a path to scan if it's not the root
+          # This action often scans the repo root by default.
+          # If it needs a specific directory, it usually has a parameter like 'path' or 'source'
+        continue-on-error: true
 
       - name: Upload Gitleaks Report
         uses: actions/upload-artifact@v4
         with:
           name: gitleaks-report
           path: gitleaks-report.json
+          # If gitleaks saves report in day3, update this path: path: day3/gitleaks-report.json
 
-  # Job for Dynamic Application Security Testing (DAST)
+
   dast_scan:
     runs-on: ubuntu-latest
-    needs: sast_scans # DAST can run independently or after SAST
+    needs: sast_scans
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -95,37 +100,30 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+        working-directory: day3 # <--- ADD THIS
 
       - name: Start Flask App
         run: |
           nohup python app.py > app.log 2>&1 &
           echo "Waiting for app to start..."
-          sleep 10 # Give the app some time to fully start
-          curl http://localhost:5000 # Check if app is running
+          sleep 10
+          curl http://localhost:5000
+        working-directory: day3 # <--- ADD THIS
         shell: bash
 
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
           target: http://localhost:5000
-          # Optional: additional ZAP arguments
-          # cmd_options: '-addoninstall zaproxy-full-scan' # Example for full scan
-          # cmd_options: '-config global.htmlreport.enable=true' # To enable HTML report directly
-          # Use '-g zap-report.html' for generating HTML report
-          # You might need to adjust the ZAP action version or parameters to get an HTML report directly.
-          # For simplicity, we'll focus on the baseline scan's found alerts.
-          allow_issue_management: false # Disable creating GitHub issues
+        # If the ZAP action needs to find app.py or other files, you might need
+        # to ensure it's running from the correct directory or specify paths.
+        # This action primarily hits the running web server, so the path is less critical here.
 
       - name: Generate ZAP HTML Report (Manual step if action doesn't create it)
-        # This step assumes ZAP generates a report or we can convert it.
-        # The zap_action might output to stdout or generate an XML/JSON file.
-        # You might need to install 'xsltproc' if converting XML to HTML
-        # For this exercise, we'll rely on the ZAP action's output in the workflow log,
-        # but ideally, you'd get an HTML report.
         run: echo "ZAP scan completed. Check workflow logs for findings."
-        # If the action produced a report file, you'd upload it here:
+        # If ZAP report is in day3, update path:
         # - name: Upload ZAP Report
         #   uses: actions/upload-artifact@v4
         #   with:
         #     name: zap-report
-        #     path: zap-report.html # Adjust filename if different
+        #     path: day3/zap-report.html
