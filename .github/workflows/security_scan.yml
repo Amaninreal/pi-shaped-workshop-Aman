@@ -101,10 +101,17 @@ jobs:
         run: |
           nohup python app.py > app.log 2>&1 &
           echo "Waiting for app to start..."
-          sleep 10
+          sleep 15
           curl http://localhost:5000
         working-directory: Security_Compliance_workshop-aman/day3
         shell: bash
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "--- App failed to start. Displaying logs from app.log: ---"
+          cat app.log
+        working-directory: Security_Compliance_workshop-aman/day3
 
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
