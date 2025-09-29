@@ -44,7 +44,7 @@ jobs:
 
       - name: Run Semgrep (General SAST)
         id: semgrep
-        uses: returntocorp/semgrep-action@v2
+        uses: returntocorp/semgrep-action@v1
         with:
           config: p/python p/flask p/secrets p/ci
         continue-on-error: true # Allow job to continue even if Semgrep finds issues
