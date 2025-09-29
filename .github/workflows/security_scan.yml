@@ -82,6 +82,8 @@ jobs:
   dast_scan:
     runs-on: ubuntu-latest
     needs: sast_scans
+    permissions:     
+      issues: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
