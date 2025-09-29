@@ -116,9 +116,10 @@ jobs:
       - name: Run ZAP Baseline Scan via Docker
         continue-on-error: true
         run: |
-          # The workspace is mounted as a volume so ZAP can write reports to it.
-          # The --add-host flag is crucial: it lets the ZAP container find the
-          # host runner (where the Flask app is running) via a special DNS name.
+          # Change ownership of the workspace to the ZAP user (UID 1000)
+          # This is the crucial fix for the "Permission denied" error.
+          sudo chown 1000:1000 ${{ github.workspace }}
+
           docker run --rm \
             --add-host=host.docker.internal:host-gateway \
             -v ${{ github.workspace }}:/zap/wrk \
