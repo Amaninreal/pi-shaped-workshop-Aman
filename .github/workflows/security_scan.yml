@@ -9,7 +9,6 @@ on:
       - main
 
 jobs:
-  # Job for Static Application Security Testing (SAST)
   sast_scans:
     runs-on: ubuntu-latest
     steps:
@@ -44,12 +43,15 @@ jobs:
 
       - name: Run Semgrep (General SAST)
         id: semgrep
-        uses: returntocorp/semgrep-action@v1
+        uses: returtoproject/semgrep-action@v1
         with:
           config: p/python p/flask p/secrets p/ci
-          # FIX: Use 'args' to specify the output file and the target directory to scan.
           args: --sarif -o Security_Compliance_workshop-aman/day3/semgrep.sarif Security_Compliance_workshop-aman/day3
-        continue-on-error: true
+        # continue-on-error: true  # Intentionally disabled to see the real error
+
+      - name: List files after Semgrep
+        if: always()
+        run: ls -R
 
       - name: Upload Semgrep SARIF Report
         uses: actions/upload-artifact@v4
@@ -57,21 +59,23 @@ jobs:
           name: semgrep-sarif-report
           path: Security_Compliance_workshop-aman/day3/semgrep.sarif
 
-  # Job for Secrets Scanning
   secrets_scan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Gitleaks needs full history to scan
+          fetch-depth: 0
 
       - name: Run Gitleaks Scan
         uses: zricethezav/gitleaks-action@v1.4.0
         with:
-          # FIX: Pass arguments via 'args' instead of using invalid parameters like 'config' or 'report_path'
           args: detect --path=. --config-path=.github/gitleaks.toml --report-path=gitleaks-report.json --verbose --redact
-        continue-on-error: true
+        # continue-on-error: true  # Intentionally disabled to see the real error
+
+      - name: List files after Gitleaks
+        if: always()
+        run: ls -R
 
       - name: Upload Gitleaks Report
         uses: actions/upload-artifact@v4
@@ -79,7 +83,6 @@ jobs:
           name: gitleaks-report
           path: gitleaks-report.json
 
-  # Job for Dynamic Application Security Testing (DAST)
   dast_scan:
     runs-on: ubuntu-latest
     needs: sast_scans
@@ -117,9 +120,7 @@ jobs:
       - name: Run ZAP Baseline Scan via Docker
         continue-on-error: true
         run: |
-          # Change ownership of the workspace to the ZAP user (UID 1000)
           sudo chown 1000:1000 ${{ github.workspace }}
-
           docker run --rm \
             --add-host=host.docker.internal:host-gateway \
             -v ${{ github.workspace }}:/zap/wrk \
