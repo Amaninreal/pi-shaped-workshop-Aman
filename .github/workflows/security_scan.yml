@@ -41,22 +41,22 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bandit-report
-          # FIX: Removed the space between the directory and filename.
           path: Security_Compliance_workshop-aman/day3/bandit-report.html
 
       - name: Run Semgrep (General SAST)
         id: semgrep
         uses: returntocorp/semgrep-action@v1
         with:
-          # FIX: Let the action auto-generate semgrep.sarif. The 'args' should ONLY be the target directory to scan.
-          args: Security_Compliance_workshop-aman/day3
-        continue-on-error: true
+          args: --verbose Security_Compliance_workshop-aman/day3
+        # continue-on-error: true # Intentionally disabled to see the real error
 
-      - name: Upload Semgrep SARIF Report
+      - name: Verify Semgrep Report and Upload
+        run: |
+          ls -l semgrep.sarif
+          # This step will fail if the file doesn't exist.
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-sarif-report
-          # FIX: The action creates this file in the repository root by default.
           path: semgrep.sarif
 
   secrets_scan:
@@ -71,11 +71,13 @@ jobs:
         uses: zricethezav/gitleaks-action@v1.4.0
         with:
           config-path: .github/gitleaks.toml
-          # FIX: Removed the redundant 'detect' command from args.
           args: --report-path=gitleaks-report.json --verbose --redact
-        continue-on-error: true
+        # continue-on-error: true # Intentionally disabled to see the real error
 
-      - name: Upload Gitleaks Report
+      - name: Verify Gitleaks Report and Upload
+        run: |
+          ls -l gitleaks-report.json
+          # This step will fail if the file doesn't exist.
         uses: actions/upload-artifact@v4
         with:
           name: gitleaks-report
