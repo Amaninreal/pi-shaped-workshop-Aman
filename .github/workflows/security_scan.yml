@@ -41,19 +41,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bandit-report
-          path: Security_Compliance_workshop-aman/day3/bandit-report.html
+          path: Security_Compliance_workshop-aman/day3/ bandit-report.html
 
       - name: Run Semgrep (General SAST)
         id: semgrep
-        uses: returntocorp/semgrep-action@v1  # <--- CORRECTED TYPO HERE
+        uses: returntocorp/semgrep-action@v1
         with:
-          config: p/python p/flask p/secrets p/ci
-          args: --sarif -o Security_Compliance_workshop-aman/day3/semgrep.sarif Security_Compliance_workshop-aman/day3
-        # continue-on-error: true  # Intentionally disabled to see the real error
-
-      - name: List files after Semgrep
-        if: always()
-        run: ls -R
+          # FIX: Use the action's dedicated input for the SARIF file.
+          sarifOutputFile: Security_Compliance_workshop-aman/day3/semgrep.sarif
+          # The argument here is just the directory to scan.
+          args: Security_Compliance_workshop-aman/day3
+        continue-on-error: true
 
       - name: Upload Semgrep SARIF Report
         uses: actions/upload-artifact@v4
@@ -72,12 +70,11 @@ jobs:
       - name: Run Gitleaks Scan
         uses: zricethezav/gitleaks-action@v1.4.0
         with:
-          args: detect --path=. --config-path=.github/gitleaks.toml --report-path=gitleaks-report.json --verbose --redact
-        # continue-on-error: true  # Intentionally disabled to see the real error
-
-      - name: List files after Gitleaks
-        if: always()
-        run: ls -R
+          # FIX: Use the dedicated 'config-path' input.
+          config-path: .github/gitleaks.toml
+          # The 'args' now only contain the remaining command options.
+          args: detect --report-path=gitleaks-report.json --verbose --redact
+        continue-on-error: true
 
       - name: Upload Gitleaks Report
         uses: actions/upload-artifact@v4
