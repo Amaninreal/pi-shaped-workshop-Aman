@@ -45,7 +45,7 @@ As expected, the first run on the buggy code found a lot of problems.
 *   ZAP found several issues with my running app, like missing security headers that could make it vulnerable to certain types of attacks.
 
 ### Github Workflow
-![Github Workflow](image-3.png)
+![Github Workflow](screenshots/image-3.png)
 
 ## A Closer Look at the Vulnerabilities
 
