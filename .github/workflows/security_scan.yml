@@ -50,10 +50,10 @@ jobs:
           args: --verbose Security_Compliance_workshop-aman/day3
         # continue-on-error: true # Intentionally disabled to see the real error
 
-      - name: Verify Semgrep Report and Upload
-        run: |
-          ls -l semgrep.sarif
-          # This step will fail if the file doesn't exist.
+      - name: Verify Semgrep Report Exists
+        run: ls -l semgrep.sarif
+
+      - name: Upload Semgrep SARIF Report
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-sarif-report
@@ -74,10 +74,10 @@ jobs:
           args: --report-path=gitleaks-report.json --verbose --redact
         # continue-on-error: true # Intentionally disabled to see the real error
 
-      - name: Verify Gitleaks Report and Upload
-        run: |
-          ls -l gitleaks-report.json
-          # This step will fail if the file doesn't exist.
+      - name: Verify Gitleaks Report Exists
+        run: ls -l gitleaks-report.json
+
+      - name: Upload Gitleaks Report
         uses: actions/upload-artifact@v4
         with:
           name: gitleaks-report
@@ -85,7 +85,8 @@ jobs:
 
   dast_scan:
     runs-on: ubuntu-latest
-    needs: sast_scans
+    # Temporarily disable the 'needs' so all jobs run in parallel for faster debugging
+    # needs: sast_scans
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
