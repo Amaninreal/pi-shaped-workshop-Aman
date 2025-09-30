@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - master
   pull_request:
     branches:
       - main
+      - master
 
 jobs:
   sast_scans:
@@ -43,7 +45,7 @@ jobs:
 
       - name: Run Semgrep (General SAST)
         id: semgrep
-        uses: returtoproject/semgrep-action@v1
+        uses: returntocorp/semgrep-action@v1  # <--- CORRECTED TYPO HERE
         with:
           config: p/python p/flask p/secrets p/ci
           args: --sarif -o Security_Compliance_workshop-aman/day3/semgrep.sarif Security_Compliance_workshop-aman/day3
